@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 from bs4 import Tag
 from http.cookiejar import CookieJar
 import mechanize
+import re
 
 with open('config.txt', 'r') as config_file:
     username = config_file.readline().rstrip() # read username
@@ -36,13 +37,15 @@ for course in current_courses.div.contents:
     if title not in ignored_courses:
         required_courses.append((title, link))
 
+quotes_regex = re.compile(r'filename="(.*?)"') # regex to get filename from between quotes
+
 for title, link in required_courses:
     print("Currently Downloading from " + title)
     resource_links = []
     course_page = br.open(link).read()
     course_soup = BeautifulSoup(course_page, 'lxml')
     all_weeks = course_soup.find('ul', {'class': 'weeks'}) # no clue why using class_ doesn't work
-    
+
     for week in all_weeks.contents:
         current_week_list = week.find('ul', {'class': 'section img-text'})
         if current_week_list is not None: # None means there is nothing uploaded for that week
@@ -52,8 +55,11 @@ for title, link in required_courses:
                     resource_link = element.find('div', {'class': 'activityinstance'}).a['href']
                     if 'resource' in resource_link:
                         resource_links.append(resource_link)
+
     for i in resource_links:
         print(i)
-        downloaded_file = br.open(i).read()
-        f = open(i.split('?')[-1], 'wb')
-        f.write(downloaded_file)
+        header = br.open(i).info()
+
+        if "Content-Type: text/html" not in header: # if the reponse is not an http file...
+            name = quotes_regex.search(str(header)).group(1)
+            br.retrieve(i, filename=name)
