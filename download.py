@@ -42,10 +42,30 @@ for course in current_courses.div.contents:
 
 quotes_regex = re.compile(r'filename="(.*?)"') # regex to get filename from between quotes
 size_regex = re.compile(r'Content-Length: (\d+)') # regex to get filesize
+total_files = 0
+total_size = 0
 
 
-def get_file_info(header): # retrieve file size and filename from header
-    return size_regex.search(str(header)).group(1), quotes_regex.search(str(header)).group(1)
+def download_file(header, file_link, course_directory): # download the file, given the header and directory
+    size = size_regex.search(str(header)).group(1)
+    name = quotes_regex.search(str(header)).group(1)
+
+    if 'lab' in name.lower():
+        course_directory += '/Lab Manuals'
+        if not os.path.isdir(course_directory): # create Lab Manuals folder if not present
+            os.mkdir(course_directory)
+
+    full_file_path = course_directory + '/' + name
+
+    if os.path.isfile(full_file_path): # if the file is already in the folder, nothing needs to be downloaded
+        return
+
+    global total_files, total_size
+    total_files += 1
+    total_size += int(size)
+    print("Downloading file: {}".format(name))
+    print("Size: {} Bytes".format(size))
+    br.retrieve(file_link, filename=full_file_path)
 
 
 for title, link in required_courses:
@@ -74,19 +94,19 @@ for title, link in required_courses:
     for link in resource_links:
         header = br.open(link).info()
 
-        if "Content-Type: text/html" not in str(header): # if the reponse is not an http file...
-            size, name = get_file_info(header)
-            print("Downloading file: {}".format(name))
-            print("Size: {} Bytes".format(size))
-            br.retrieve(link, filename=course_directory + '/' + name)
+        # if the reponse is not an http file, it means it is the link to a resource that can be downloaded
+        if "Content-Type: text/html" not in str(header):
+            download_file(header, link, course_directory)
 
+        # else a resource file is embedded in the page (probably pdf)
         else:
             resource_file_page = br.open(link).read()
             resource_file_soup = BeautifulSoup(resource_file_page, 'lxml')
             # get the link to the onject embedded in the page
             file_link = resource_file_soup.find('object', {'id': 'resourceobject'})['data']
             header = br.open(file_link).info()
-            size, name = get_file_info(header)
-            print("Downloading file: {}".format(name))
-            print("Size: {} Bytes".format(size))
-            br.retrieve(file_link, filename=course_directory + '/' + name)
+            download_file(header, file_link, course_directory)
+    print() # a new line for aesthetic reasons ;)
+
+print("Download Finished. {} new file(s) found.".format(total_files))
+print("Total Size: {} Bytes".format(total_size))
