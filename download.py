@@ -8,11 +8,26 @@ import os
 directory = os.path.dirname(os.path.abspath(__file__))
 
 with open(directory + '/config.txt', 'r') as config_file:
+    config_file.readline()
     username = config_file.readline().rstrip() # read username
+
+    config_file.readlines(2)
     password = config_file.readline().rstrip() # read password
+
+    config_file.readlines(2)
     ignored_courses = []
+    for line in config_file:
+        if line == 'Aliases:\n':
+            break
+        if line != '\n':
+            ignored_courses.append(line.rstrip())
+
+    aliases = {}
     for course in config_file:
-        ignored_courses.append(course.rstrip())
+        if course == '\n':
+            break
+        alias = config_file.readline()
+        aliases[course.rstrip()] = alias.rstrip()
 
 cj = CookieJar()
 br = mechanize.Browser()
@@ -30,15 +45,6 @@ soup = BeautifulSoup(home, 'lxml')
 
 current_courses = soup.find('div', {'id': '1'}) # current courses are under div with id 1
 required_courses = [] # list for tuples containing course name and link
-
-for course in current_courses.div.contents:
-    title = course.h2.a.text
-    link = course.h2.a['href']
-
-    title = ' '.join(title.split('  ')) # weird bug with 2 spaces appearing in some titles
-
-    if title not in ignored_courses:
-        required_courses.append((title, link))
 
 quotes_regex = re.compile(r'filename="(.*?)"') # regex to get filename from between quotes
 size_regex = re.compile(r'Content-Length: (\d+)') # regex to get filesize
@@ -68,18 +74,30 @@ def download_file(header, file_link, course_directory): # download the file, giv
     br.retrieve(file_link, filename=full_file_path)
 
 
+for course in current_courses.div.contents:
+    title = course.h2.a.text
+    link = course.h2.a['href']
+
+    title = ' '.join(title.split('  ')) # weird bug with 2 spaces appearing in some titles
+
+    if title not in ignored_courses:
+        if title in aliases:
+            title = aliases[title]
+            if title in ignored_courses: # check if the alias is in ignored courses
+                continue
+        required_courses.append((title, link))
+
 for title, link in required_courses:
 
-    course_directory = directory + '/' + title
-
-    if not os.path.isdir(course_directory):
-        os.mkdir(course_directory)
-
-    print("Currently Downloading from " + title)
+    print("Currently Downloading Course Materials for " + title)
     resource_links = []
     course_page = br.open(link).read()
     course_soup = BeautifulSoup(course_page, 'lxml')
     all_weeks = course_soup.find('ul', {'class': 'weeks'}) # no clue why using class_ doesn't work
+
+    course_directory = directory + '/' + title
+    if not os.path.isdir(course_directory):
+        os.mkdir(course_directory)
 
     for week in all_weeks.contents:
         current_week_list = week.find('ul', {'class': 'section img-text'})
