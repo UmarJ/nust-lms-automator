@@ -3,8 +3,11 @@ from bs4 import Tag
 from http.cookiejar import CookieJar
 import mechanize
 import re
+import os
 
-with open('config.txt', 'r') as config_file:
+directory = os.path.dirname(os.path.abspath(__file__))
+
+with open(directory + '/config.txt', 'r') as config_file:
     username = config_file.readline().rstrip() # read username
     password = config_file.readline().rstrip() # read password
     ignored_courses = []
@@ -38,8 +41,20 @@ for course in current_courses.div.contents:
         required_courses.append((title, link))
 
 quotes_regex = re.compile(r'filename="(.*?)"') # regex to get filename from between quotes
+size_regex = re.compile(r'Content-Length: (\d+)') # regex to get filesize
+
+
+def get_file_info(header): # retrieve file size and filename from header
+    return size_regex.search(str(header)).group(1), quotes_regex.search(str(header)).group(1)
+
 
 for title, link in required_courses:
+
+    course_directory = directory + '/' + title
+
+    if not os.path.isdir(course_directory):
+        os.mkdir(course_directory)
+
     print("Currently Downloading from " + title)
     resource_links = []
     course_page = br.open(link).read()
@@ -56,10 +71,22 @@ for title, link in required_courses:
                     if 'resource' in resource_link:
                         resource_links.append(resource_link)
 
-    for i in resource_links:
-        print(i)
-        header = br.open(i).info()
+    for link in resource_links:
+        header = br.open(link).info()
 
-        if "Content-Type: text/html" not in header: # if the reponse is not an http file...
-            name = quotes_regex.search(str(header)).group(1)
-            br.retrieve(i, filename=name)
+        if "Content-Type: text/html" not in str(header): # if the reponse is not an http file...
+            size, name = get_file_info(header)
+            print("Downloading file: {}".format(name))
+            print("Size: {} Bytes".format(size))
+            br.retrieve(link, filename=course_directory + '/' + name)
+
+        else:
+            resource_file_page = br.open(link).read()
+            resource_file_soup = BeautifulSoup(resource_file_page, 'lxml')
+            # get the link to the onject embedded in the page
+            file_link = resource_file_soup.find('object', {'id': 'resourceobject'})['data']
+            header = br.open(file_link).info()
+            size, name = get_file_info(header)
+            print("Downloading file: {}".format(name))
+            print("Size: {} Bytes".format(size))
+            br.retrieve(file_link, filename=course_directory + '/' + name)
