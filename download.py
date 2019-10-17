@@ -105,9 +105,14 @@ for title, link in required_courses:
             for element in week.find('ul', class_='section img-text').contents:
                 # https://stackoverflow.com/questions/7591535/beautifulsoup-attributeerror-navigablestring-object-has-no-attribute-name
                 if isinstance(element, Tag):
-                    resource_link = element.find('div', {'class': 'activityinstance'}).a['href']
-                    if 'resource' in resource_link:
-                        resource_links.append(resource_link)
+                    try:
+                        # links that will be available later do not have an anchor tag under div,
+                        # although the class is activityinstance, which results in a TypeError when subscripting
+                        resource_link = element.find('div', {'class': 'activityinstance'}).a['href']
+                        if 'resource' in resource_link:
+                            resource_links.append(resource_link)
+                    except TypeError:
+                        pass
 
     for link in resource_links:
         header = br.open(link).info()
