@@ -1,33 +1,15 @@
+# Python Std Lib Modules
+import re
+import os
+
+# Third Party Modules
 from bs4 import BeautifulSoup
 from bs4 import Tag
 from http.cookiejar import CookieJar
 import mechanize
-import re
-import os
 
-directory = os.path.dirname(os.path.abspath(__file__))
-
-with open(directory + '/config.txt', 'r') as config_file:
-    config_file.readline()
-    username = config_file.readline().rstrip() # read username
-
-    config_file.readlines(2)
-    password = config_file.readline().rstrip() # read password
-
-    config_file.readlines(2)
-    ignored_courses = []
-    for line in config_file:
-        if line == 'Aliases:\n':
-            break
-        if line != '\n':
-            ignored_courses.append(line.rstrip())
-
-    aliases = {}
-    for course in config_file:
-        if course == '\n':
-            break
-        alias = config_file.readline()
-        aliases[course.rstrip()] = alias.rstrip()
+# Configuration Data
+from config import *
 
 cj = CookieJar()
 br = mechanize.Browser()
@@ -35,8 +17,8 @@ br.set_cookiejar(cj)
 
 br.open('https://lms.nust.edu.pk/portal/login/index.php')
 br.select_form(nr=0)
-br.form['username'] = username
-br.form['password'] = password # enter username and password into the form
+br.form['username'] = USERNAME
+br.form['password'] = PASSWORD
 br.submit()
 
 home = br.open('https://lms.nust.edu.pk/portal/my/').read()
@@ -80,10 +62,10 @@ for course in current_courses.div.contents:
 
     title = ' '.join(title.split('  ')) # weird bug with 2 spaces appearing in some titles
 
-    if title not in ignored_courses:
-        if title in aliases:
-            title = aliases[title]
-            if title in ignored_courses: # check if the alias is in ignored courses
+    if title not in IGNORED_COURSES:
+        if title in ALIASES:
+            title = ALIASES[title]
+            if title in IGNORED_COURSES: # check if the alias is in ignored courses
                 continue
         required_courses.append((title, link))
 
