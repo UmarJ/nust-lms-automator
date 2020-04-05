@@ -13,3 +13,7 @@ ALIASES = {"HU212 Technical & Business Writing BSCS-8ABC -- (Fall'19)": "Technic
            "CS220 Database Systems BSCS-8AB -- (Fall'19)": "Database Systems",
            "CS250 Data Structures & Algorithms BSCS-8AB -- (Fall'19)": "Data Structures & Algorithms"
             }
+
+# Absolute Path of directory to save files into eg ~/Dropbox/StudyMaterials for Linux or
+# E:\\StudyMaterials for Windows. 
+DOWNLOAD_DIRECTORY = None  # Set to None for current directory
