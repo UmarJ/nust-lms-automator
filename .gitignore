@@ -1,0 +1,7 @@
+# Virtual Environment Files
+env/ 
+
+# Python Generated Files
+__pycache__
+
+.vscode/

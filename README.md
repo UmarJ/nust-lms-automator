@@ -1,53 +1,43 @@
-# NUST LMS Automator
+ NUST LMS Automator
 
-Python3 is needed for this script.
+A small script to automatically download all course materials from the NUST Learning Management System (lMS) Online Portal.
 
-## Installing Required Modules
+----
+## Installation Guide
 
-### Windows
+_This guide assumes that you have you have your Python binary under `python` and pip under `pip`. Depending on your installation, you may have to run `python3` or `py` for Python and `pip3` for pip. You can change that behavious using Symbolic Links._
 
+### Cloning the Repository 
+If you have `git` installled, you can clone this repository using 
 ```
-python -m pip install beautifulsoup4
-python -m pip install lxml
-python -m pip install mechanize
+git clone <url_of_this_page>
 ```
+Otherwise you can Downlaod and Extract this repository in ZIP Format using the "Download ZIP" button at the top.
 
-### Linux
-
+### Installing the Dependencies 
+Make sure you have Python with pip installed. Run,
 ```
-pip3 install beautifulsoup4
-pip3 install lxml
-pip3 install mechanize
+pip install -r requirements.txt
 ```
+You can optionally create and activate a virtual environment first using,
 
-## Config File Information
+### Editing The Config File Information
 
-#### Username
-Put your username under this.
+The config.py file contains the following variables:
 
-#### Password
-Put your username under this.
+USERNAME: Edit it to match your LMS Username
 
-#### Ignored Courses
-If you don't want to automatically download course materials for an enrolled course, you can copy its name from LMS and put it under this.
+PASSWORD: Put your username under this.
 
-#### Aliases
-If you don't like the name of a course on LMS and want its course materials to be placed in a different folder, you can specify the name for the alternate folder here. Just copy the name of the course on the first line, and its preferred name on the next line. There is no limit to the number of courses that can be added.
+IGNORED_COURSES: Changed this to an array of courses that you do not want to download
 
-## Running the Script
+ALIASES: If you don't like the name of a course on LMS and want its course materials to be placed in a different folder, you can specify the name for the alternate folder here. Just add an element with a key equal to the name of the course and value equal to the folder that you want to copy it's contents to.
 
-Copy the config file and the script download.py to the directory where you want folders for courses to be made and navigate to it using Command Prompt/Terminal.
+### Running the Script
 
-### Windows
-
+Copy the config file and the script download.py to the directory where you want folders for courses to be made and navigate to it using Command Prompt/Terminal. Finally run,
 ```
 python download.py
-```
-
-### Linux
-
-```
-python3 download.py
 ```
 
 ## Automatically Running this Script
