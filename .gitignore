@@ -2,6 +2,6 @@
 env/ 
 
 # Python Generated Files
-__pycache__
+__pycache__/
 
-.vscode/
+
