@@ -24,24 +24,29 @@ br.form['username'] = USERNAME
 br.form['password'] = PASSWORD
 br.submit()
 
-quotes_regex = re.compile(r'filename="(.*?)"') # regex to get filename from between quotes
-size_regex = re.compile(r'Content-Length: (\d+)') # regex to get filesize
+# regex to get filename from between quotes
+quotes_regex = re.compile(r'filename="(.*?)"')
+# regex to get filesize
+size_regex = re.compile(r'Content-Length: (\d+)')
 total_files = 0
 total_size = 0
 
 
-def download_file(header, file_link, course_directory): # download the file, given the header and directory
+# download the file, given the header and directory
+def download_file(header, file_link, course_directory):
     size = size_regex.search(str(header)).group(1)
     name = quotes_regex.search(str(header)).group(1)
 
     if 'lab' in name.lower():
         course_directory += '/Lab Manuals'
-        if not os.path.isdir(course_directory): # create Lab Manuals folder if not present
+        # create Lab Manuals directory if not present
+        if not os.path.isdir(course_directory):
             os.mkdir(course_directory)
 
     full_file_path = course_directory + '/' + name
 
-    if os.path.isfile(full_file_path): # if the file is already in the folder, nothing needs to be downloaded
+    # if the file is already in the folder, nothing needs to be downloaded
+    if os.path.isfile(full_file_path):
         return
 
     global total_files, total_size
@@ -73,14 +78,15 @@ for link in COURSE_LINKS:
 
     for week in all_weeks.contents:
         current_week_list = week.find('ul', class_='section img-text')
-        if current_week_list is not None: # None means there is nothing uploaded for that week
+        if current_week_list is not None:  # None means there is nothing uploaded for that week
             for element in current_week_list.contents:
                 # https://stackoverflow.com/questions/7591535/beautifulsoup-attributeerror-navigablestring-object-has-no-attribute-name
                 if isinstance(element, Tag) and 'resource' in element['class']:
                     try:
                         # links that will be available later do not have an anchor tag under div,
                         # although the class is activityinstance, which results in a TypeError when subscripting
-                        resource_link = element.find('div', class_='activityinstance').a['href']
+                        resource_link = element.find(
+                            'div', class_='activityinstance').a['href']
                         if 'resource' in resource_link:
                             resource_links.append(resource_link)
                     except (TypeError, AttributeError):
@@ -95,7 +101,8 @@ for link in COURSE_LINKS:
         else:
             resource_file_page = br.open(link).read()
             resource_file_soup = BeautifulSoup(resource_file_page, 'lxml')
-            content_div = resource_file_soup.find('div', class_='resourcecontent')
+            content_div = resource_file_soup.find(
+                'div', class_='resourcecontent')
 
             # resource link may be inside an iframe
             if content_div.find('iframe'):
@@ -115,7 +122,7 @@ for link in COURSE_LINKS:
             header = br.open(file_link).info()
             download_file(header, file_link, course_directory)
 
-    print() # a new line for aesthetic reasons ;)
+    print()  # a new line for aesthetic reasons ;)
 
 print("Download Finished. {} new file(s) found.".format(total_files))
 print("Total Size: {} Bytes".format(total_size))
