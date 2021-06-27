@@ -2,6 +2,8 @@
 
 A small script to automatically download all course materials from the NUST Learning Management System (LMS) Online Portal.
 
+**Updated to work with new LMS.**
+
 ----
 ## Installation Guide
 
@@ -32,7 +34,7 @@ The config.py file contains the following variables:
 | -------- | -------- |
 | USERNAME | Your LMS Username. |
 | PASSWORD | Your LMS Password. |
-| IGNORED_COURSES | A list of courses that you do not want to download course materials for. |
+| COURSE_LINKS | Links to courses that you want to download course materials for. |
 | ALIASES | If you want course materials for a specific course to be placed in a different subdirectory, you can specify the name for that subdirectory here. Add a key-value pair to the dictionary with the key equal to the name of the course on LMS and the value equal to the preferred name of the subdirectory. |
 | DOWNLOAD_DIRECTORY | Absolute path of the download directory. Set it to None to download in the current directory. |
 

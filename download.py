@@ -1,4 +1,4 @@
-# Python Std Lib Modules
+# Python Standard Library Modules
 import re
 import os
 
@@ -12,7 +12,7 @@ import mechanize
 from config import *
 
 # Set Current Directory as download directory if not specified
-directory = DOWNLOAD_DIRECTORY or  os.path.dirname(os.path.abspath(__file__))
+directory = DOWNLOAD_DIRECTORY or os.path.dirname(os.path.abspath(__file__))
 
 cj = CookieJar()
 br = mechanize.Browser()
@@ -23,13 +23,6 @@ br.select_form(nr=0)
 br.form['username'] = USERNAME
 br.form['password'] = PASSWORD
 br.submit()
-
-home = br.open('https://lms.nust.edu.pk/portal/my/').read()
-
-soup = BeautifulSoup(home, 'lxml')
-
-current_courses = soup.find('div', {'id': '1'}) # current courses are under div with id 1
-required_courses = [] # list for tuples containing course name and link
 
 quotes_regex = re.compile(r'filename="(.*?)"') # regex to get filename from between quotes
 size_regex = re.compile(r'Content-Length: (\d+)') # regex to get filesize
@@ -59,44 +52,38 @@ def download_file(header, file_link, course_directory): # download the file, giv
     br.retrieve(file_link, filename=full_file_path)
 
 
-for course in current_courses.div.contents:
-    title = course.h2.a.text
-    link = course.h2.a['href']
+for link in COURSE_LINKS:
 
-    title = ' '.join(title.split('  ')) # weird bug with 2 spaces appearing in some titles
+    course_page = br.open(link).read()
+    course_soup = BeautifulSoup(course_page, 'lxml')
 
-    if title not in IGNORED_COURSES:
-        if title in ALIASES:
-            title = ALIASES[title]
-            if title in IGNORED_COURSES: # check if the alias is in ignored courses
-                continue
-        required_courses.append((title, link))
+    title = course_soup.find('div', class_='page-header-headings').next.next
 
-for title, link in required_courses:
+    if title in ALIASES:
+        title = ALIASES[title]
 
     print("Currently Downloading Course Materials for " + title)
     resource_links = []
-    course_page = br.open(link).read()
-    course_soup = BeautifulSoup(course_page, 'lxml')
-    all_weeks = course_soup.find('ul', {'class': 'weeks'}) # no clue why using class_ doesn't work
+
+    all_weeks = course_soup.find('ul', class_='weeks')
 
     course_directory = directory + '/' + title
     if not os.path.isdir(course_directory):
         os.mkdir(course_directory)
 
     for week in all_weeks.contents:
-        current_week_list = week.find('ul', {'class': 'section img-text'})
+        current_week_list = week.find('ul', class_='section img-text')
         if current_week_list is not None: # None means there is nothing uploaded for that week
-            for element in week.find('ul', class_='section img-text').contents:
+            for element in current_week_list.contents:
                 # https://stackoverflow.com/questions/7591535/beautifulsoup-attributeerror-navigablestring-object-has-no-attribute-name
-                if isinstance(element, Tag):
+                if isinstance(element, Tag) and 'resource' in element['class']:
                     try:
                         # links that will be available later do not have an anchor tag under div,
                         # although the class is activityinstance, which results in a TypeError when subscripting
-                        resource_link = element.find('div', {'class': 'activityinstance'}).a['href']
+                        resource_link = element.find('div', class_='activityinstance').a['href']
                         if 'resource' in resource_link:
                             resource_links.append(resource_link)
-                    except TypeError:
+                    except (TypeError, AttributeError):
                         pass
 
     for link in resource_links:
@@ -105,15 +92,29 @@ for title, link in required_courses:
         # if the reponse is not an http file, it means it is the link to a resource that can be downloaded
         if "Content-Type: text/html" not in str(header):
             download_file(header, link, course_directory)
-
-        # else a resource file is embedded in the page (probably pdf)
         else:
             resource_file_page = br.open(link).read()
             resource_file_soup = BeautifulSoup(resource_file_page, 'lxml')
-            # get the link to the onject embedded in the page
-            file_link = resource_file_soup.find('object', {'id': 'resourceobject'})['data']
+            content_div = resource_file_soup.find('div', class_='resourcecontent')
+
+            # resource link may be inside an iframe
+            if content_div.find('iframe'):
+                file_link = content_div.find('iframe')['src']
+
+            # ...or inside an object embedded in the page (like pdf files)
+            elif content_div.find('object'):
+                file_link = content_div.find('object')['data']
+
+            # ...or resource may be an image
+            elif content_div.find('img'):
+                file_link = content_div.find('img')['src']
+
+            else:
+                continue
+
             header = br.open(file_link).info()
             download_file(header, file_link, course_directory)
+
     print() # a new line for aesthetic reasons ;)
 
 print("Download Finished. {} new file(s) found.".format(total_files))
