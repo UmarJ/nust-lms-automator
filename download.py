@@ -38,14 +38,14 @@ def download_file(header, file_link, course_directory):
     name = quotes_regex.search(str(header)).group(1)
 
     if 'lab' in name.lower():
-        course_directory += '/Lab Manuals'
+        course_directory = os.path.join(course_directory, 'Lab Manuals')
         # create Lab Manuals directory if not present
         if not os.path.isdir(course_directory):
             os.mkdir(course_directory)
 
-    full_file_path = course_directory + '/' + name
+    full_file_path = os.path.join(course_directory, name)
 
-    # if the file is already in the folder, nothing needs to be downloaded
+    # if the file is already in the directory, nothing needs to be downloaded
     if os.path.isfile(full_file_path):
         return
 
@@ -72,7 +72,7 @@ for link in COURSE_LINKS:
 
     all_weeks = course_soup.find('ul', class_='weeks')
 
-    course_directory = directory + '/' + title
+    course_directory = os.path.join(directory, title)
     if not os.path.isdir(course_directory):
         os.mkdir(course_directory)
 
