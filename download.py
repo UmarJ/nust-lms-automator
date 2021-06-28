@@ -41,7 +41,7 @@ def download_file(header, file_link, course_directory):
         course_directory = os.path.join(course_directory, 'Lab Manuals')
         # create Lab Manuals directory if not present
         if not os.path.isdir(course_directory):
-            os.mkdir(course_directory)
+            os.makedirs(course_directory)
 
     full_file_path = os.path.join(course_directory, name)
 
@@ -74,7 +74,7 @@ for link in COURSE_LINKS:
 
     course_directory = os.path.join(directory, title)
     if not os.path.isdir(course_directory):
-        os.mkdir(course_directory)
+        os.makedirs(course_directory)
 
     for week in all_weeks.contents:
         current_week_list = week.find('ul', class_='section img-text')
