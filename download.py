@@ -12,7 +12,10 @@ import mechanize
 from config import *
 
 # Set Current Directory as download directory if not specified
-directory = os.path.expanduser(DOWNLOAD_DIRECTORY) or os.path.dirname(os.path.abspath(__file__))
+if DOWNLOAD_DIRECTORY:
+    directory = os.path.expanduser(DOWNLOAD_DIRECTORY)
+else:
+    directory = os.path.dirname(os.path.abspath(__file__))
 
 cj = CookieJar()
 br = mechanize.Browser()
