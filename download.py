@@ -84,16 +84,29 @@ for link in COURSE_LINKS:
         if current_week_list is not None:  # None means there is nothing uploaded for that week
             for element in current_week_list.contents:
                 # https://stackoverflow.com/questions/7591535/beautifulsoup-attributeerror-navigablestring-object-has-no-attribute-name
-                if isinstance(element, Tag) and 'resource' in element['class']:
-                    try:
-                        # links that will be available later do not have an anchor tag under div,
-                        # although the class is activityinstance, which results in a TypeError when subscripting
-                        resource_link = element.find(
-                            'div', class_='activityinstance').a['href']
-                        if 'resource' in resource_link:
-                            resource_links.append(resource_link)
-                    except (TypeError, AttributeError):
-                        pass
+                if isinstance(element, Tag):
+                    if 'resource' in element['class']:
+                        try:
+                            # links that will be available later do not have an anchor tag under div,
+                            # although the class is activityinstance, which results in a TypeError when subscripting
+                            resource_link = element.find(
+                                'div', class_='activityinstance').a['href']
+                            if 'resource' in resource_link:
+                                resource_links.append(resource_link)
+                        except (TypeError, AttributeError):
+                            pass
+
+                    elif 'assign' in element['class']:
+                        # open assignment page
+                        assignment_page = br.open(element.find(
+                            'div', class_='activityinstance').a['href']).read()
+                        assignment_soup = BeautifulSoup(
+                            assignment_page, 'lxml')
+                        # check if a file has been uploaded to the assignment in the intro div
+                        file_upload_div = assignment_soup.find('div', id='intro').find(
+                            'div', class_='fileuploadsubmission')
+                        if file_upload_div:
+                            resource_links.append(file_upload_div.a['href'])
 
     for link in resource_links:
         header = br.open(link).info()
