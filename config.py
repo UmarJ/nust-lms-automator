@@ -18,3 +18,8 @@ ALIASES = {"HU212 Technical & Business Writing BSCS-8ABC -- (Fall'19)": "Technic
 # Absolute path of directory to save files into e.g. "~/NUST/1st Semester" for Linux or
 # "E:/NUST/1st Semester" for Windows.
 DOWNLOAD_DIRECTORY = None  # Set to None for current directory
+
+# Directory to save lab manuals into (files containing 'lab' in the filename)
+# This directory will be created inside DOWNLOAD_DIRECTORY
+# Set to None to save in the same directory as other files
+LAB_MANUALS_DIR = "Lab Manuals"

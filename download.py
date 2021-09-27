@@ -41,10 +41,11 @@ def download_file(header, file_link, course_directory):
     name = quotes_regex.search(str(header)).group(1)
 
     if 'lab' in name.lower():
-        course_directory = os.path.join(course_directory, 'Lab Manuals')
-        # create Lab Manuals directory if not present
-        if not os.path.isdir(course_directory):
-            os.makedirs(course_directory)
+        if LAB_MANUALS_DIR:
+            course_directory = os.path.join(course_directory, LAB_MANUALS_DIR)
+            # create directory for lab manuals if not present
+            if not os.path.isdir(course_directory):
+                os.makedirs(course_directory)
 
     full_file_path = os.path.join(course_directory, name)
 

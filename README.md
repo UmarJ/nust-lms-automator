@@ -37,6 +37,7 @@ The config.py file contains the following variables:
 | COURSE_LINKS | Links to courses that you want to download course materials for. |
 | ALIASES | If you want course materials for a specific course to be placed in a different subdirectory, you can specify the name for that subdirectory here. Add a key-value pair to the dictionary with the key equal to the name of the course on LMS and the value equal to the preferred name of the subdirectory. |
 | DOWNLOAD_DIRECTORY | Absolute path of the download directory. Set it to None to download in the current directory. |
+| LAB_MANUALS_DIR | Directory inside `DOWNLOAD_DIRECTORY` where lab manuals are saved. Set it to `None` to download in the same directory as other files. |
 
 ## Running the Script
 
