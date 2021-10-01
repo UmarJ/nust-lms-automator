@@ -103,10 +103,10 @@ for link in COURSE_LINKS:
                             'div', class_='activityinstance').a['href']).read()
                         assignment_soup = BeautifulSoup(
                             assignment_page, 'lxml')
-                        # check if a file has been uploaded to the assignment in the intro div
-                        file_upload_div = assignment_soup.find('div', id='intro').find(
+                        # check if files have been uploaded to the assignment in the intro div
+                        file_upload_divs = assignment_soup.find('div', id='intro').find_all(
                             'div', class_='fileuploadsubmission')
-                        if file_upload_div:
+                        for file_upload_div in file_upload_divs:
                             resource_links.append(file_upload_div.a['href'])
 
     for link in resource_links:
