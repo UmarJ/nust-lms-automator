@@ -40,18 +40,25 @@ def download_file(header, file_link, course_directory):
     size = size_regex.search(str(header)).group(1)
     name = quotes_regex.search(str(header)).group(1)
 
-    if 'lab' in name.lower():
-        if LAB_MANUALS_DIR:
-            course_directory = os.path.join(course_directory, LAB_MANUALS_DIR)
-            # create directory for lab manuals if not present
-            if not os.path.isdir(course_directory):
-                os.makedirs(course_directory)
+    lab_directory = os.path.join(
+        course_directory, LAB_MANUALS_DIR) if LAB_MANUALS_DIR else None
+
+    # if the file is present in the course directory, nothing needs to be downloaded
+    if os.path.isfile(os.path.join(course_directory, name)):
+        return
+
+    # if the file is present in the lab directory, nothing needs to be downloaded
+    if lab_directory and os.path.isfile(os.path.join(lab_directory, name)):
+        return
 
     full_file_path = os.path.join(course_directory, name)
 
-    # if the file is already in the directory, nothing needs to be downloaded
-    if os.path.isfile(full_file_path):
-        return
+    if 'lab' in name.lower():
+        if lab_directory:
+            if not os.path.isdir(lab_directory):
+                # create directory for lab manuals if not present
+                os.makedirs(lab_directory)
+            full_file_path = os.path.join(lab_directory, name)
 
     global total_files, total_size
     total_files += 1
